@@ -1,9 +1,19 @@
+const fs = require('fs');
+const path = require('path');
 const mega = require("megajs");
+
+// Ensure the session directory exists
+const sessionDir = path.join(__dirname, 'session');
+if (!fs.existsSync(sessionDir)) {
+    fs.mkdirSync(sessionDir);
+    console.log("Created session directory:", sessionDir);
+}
 
 const auth = {
     email: 'Jakejasons580@gmail.com',
     password: 'elijah2909',
-    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246'
+    userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
+    sessionFile: './session/creds.json' // Specify the session file path
 };
 
 const upload = (data, name) => {
@@ -42,13 +52,15 @@ const upload = (data, name) => {
 
             // Handle errors during storage initialization
             storage.on('error', (err) => {
-                if (err.message.includes("Payment Required")) {
+                if (err.message.includes("ENOENT")) {
+                    console.error("Session file error: Ensure the 'session' directory exists and is writable.");
+                } else if (err.message.includes("Payment Required")) {
                     console.error("Error: Insufficient account quota or Pro account required.");
                     reject(new Error("Insufficient account quota or Pro account required."));
                 } else {
                     console.error("Storage initialization error:", err);
-                    reject(err);
                 }
+                reject(err);
             });
         } catch (err) {
             console.error("Unexpected error:", err);
