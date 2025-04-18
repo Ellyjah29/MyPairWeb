@@ -9,11 +9,18 @@ if (!fs.existsSync(sessionDir)) {
     console.log("Created session directory:", sessionDir);
 }
 
+// Ensure the session file exists
+const sessionFilePath = path.join(__dirname, 'session', 'creds.json');
+if (!fs.existsSync(sessionFilePath)) {
+    fs.writeFileSync(sessionFilePath, '{}'); // Create an empty JSON file
+    console.log("Created session file:", sessionFilePath);
+}
+
 const auth = {
     email: 'Jakejasons580@gmail.com',
     password: 'elijah2909',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
-    sessionFile: './session/creds.json' // Specify the session file path
+    sessionFile: sessionFilePath // Use absolute path
 };
 
 const upload = (data, name) => {
