@@ -24,8 +24,13 @@ const upload = (data, name) => {
                 storage.on("add", (file) => {
                     file.link((err, url) => {
                         if (err) {
-                            console.error("Error generating file link:", err);
-                            reject(err);
+                            if (err.message.includes("Payment Required")) {
+                                console.error("Error: Insufficient account quota or Pro account required.");
+                                reject(new Error("Insufficient account quota or Pro account required."));
+                            } else {
+                                console.error("Error generating file link:", err);
+                                reject(err);
+                            }
                         } else {
                             console.log("File uploaded successfully. URL:", url);
                             storage.close(); // Close the storage connection
@@ -37,8 +42,13 @@ const upload = (data, name) => {
 
             // Handle errors during storage initialization
             storage.on('error', (err) => {
-                console.error("Storage initialization error:", err);
-                reject(err);
+                if (err.message.includes("Payment Required")) {
+                    console.error("Error: Insufficient account quota or Pro account required.");
+                    reject(new Error("Insufficient account quota or Pro account required."));
+                } else {
+                    console.error("Storage initialization error:", err);
+                    reject(err);
+                }
             });
         } catch (err) {
             console.error("Unexpected error:", err);
