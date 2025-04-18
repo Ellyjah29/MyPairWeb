@@ -16,8 +16,8 @@ if (!fs.existsSync(sessionFilePath)) {
 }
 
 const auth = {
-    email: 'mhmodsyt517@gmail.com',
-    password: 'MHMODS517Yt@Hr',
+    email: 'jakejasons580@gmail.com',
+    password: 'elijah2909',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
     sessionFile: sessionFilePath // Use absolute path for the session file
 };
@@ -58,6 +58,8 @@ const upload = (data, name) => {
                     console.error("Session file error: Ensure the 'session' directory exists and is writable.");
                 } else if (err.message.includes("Payment Required")) {
                     console.error("Error: Insufficient account quota or Pro account required.");
+                } else if (err.message.includes("Timed Out")) {
+                    console.error("Error: Connection timed out. Please check your network.");
                 } else {
                     console.error("Storage initialization error:", err);
                 }
