@@ -16,8 +16,8 @@ if (!fs.existsSync(sessionFilePath)) {
 }
 
 const auth = {
-    email: 'youremail@gmail.com',
-    password: 'your pass',
+    email: 'jakejasons580@gmail.com',
+    password: 'Septorch1',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
     sessionFile: sessionFilePath // Use absolute path for the session file
 };
