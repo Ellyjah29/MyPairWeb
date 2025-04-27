@@ -30,7 +30,7 @@ try {
 
 const auth = {
     email: 'jakejasons580@gmail.com',
-    password: 'Septorch2',
+    password: 'Septorch11',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
     sessionFile: sessionFilePath, // Use absolute path for the session file
     ...sessionData // Merge existing session data
