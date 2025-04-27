@@ -15,44 +15,11 @@ if (!fs.existsSync(sessionFilePath)) {
     console.log("Created session file:", sessionFilePath);
 }
 
-// Load session data
-let sessionData = {};
-try {
-    const rawData = fs.readFileSync(sessionFilePath, 'utf8');
-    sessionData = JSON.parse(rawData);
-    if (!sessionData || Object.keys(sessionData).length === 0) {
-        console.warn("Session file is empty or invalid. A new session will be created.");
-    }
-} catch (err) {
-    console.error("Error reading session file:", err.message);
-    process.exit(1);
-}
-
 const auth = {
     email: 'jakejasons580@gmail.com',
-    password: 'Septorch11',
+    password: 'Septorch222',
     userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/42.0.2311.135 Safari/537.36 Edge/12.246',
-    sessionFile: sessionFilePath, // Use absolute path for the session file
-    ...sessionData // Merge existing session data
-};
-
-// Retry mechanism with exponential backoff
-const retryOperation = (operation, retries = 3, delay = 1000) => {
-    return new Promise((resolve, reject) => {
-        const attempt = (attemptCount) => {
-            operation()
-                .then(resolve)
-                .catch((err) => {
-                    if (attemptCount < retries) {
-                        console.log(`Retrying... Attempt ${attemptCount + 1}`);
-                        setTimeout(() => attempt(attemptCount + 1), delay * Math.pow(2, attemptCount));
-                    } else {
-                        reject(err);
-                    }
-                });
-        };
-        attempt(0);
-    });
+    sessionFile: sessionFilePath // Use absolute path for the session file
 };
 
 const upload = (data, name) => {
@@ -64,10 +31,6 @@ const upload = (data, name) => {
             // Wait for the storage to be ready
             storage.on('ready', () => {
                 console.log("Storage is ready. Proceeding with upload...");
-
-                // Save session data to prevent repeated logins
-                fs.writeFileSync(sessionFilePath, JSON.stringify(storage.serialize(), null, 2));
-                console.log("Session data saved successfully.");
 
                 // Start uploading the file
                 const uploadStream = storage.upload({ name: name, allowUploadBuffering: true });
@@ -111,9 +74,4 @@ const upload = (data, name) => {
 };
 
 module.exports = { upload };
-
-// Example usage:
-// const fileStream = fs.createReadStream('example.txt');
-// upload(fileStream, 'example.txt')
-//     .then(url => console.log("Uploaded file URL:", url))
-//     .catch(err => console.error("Upload failed:", err));
+    
