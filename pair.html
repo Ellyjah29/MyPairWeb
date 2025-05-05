@@ -6,81 +6,83 @@
   <title>PAIR CODE</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   <style>
-    body { 
+    body {
+      margin: 0;
+      padding: 0;
+      height: 100vh;
+      background: url('https://images.unsplash.com/photo-1605902711622-cfb43c4437d1?auto=format&fit=crop&w=1350&q=80') no-repeat center center fixed;
+      background-size: cover;
+      font-family: 'Arial', sans-serif;
+      color: #fff;
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100vh;
-      margin: 0;
-      background-color: #141414;
-      font-family: 'Arial', sans-serif;
-      color: #fff; /* Set the text color to white */
     }
 
     .container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
+      background: rgba(0, 0, 0, 0.75);
+      padding: 25px;
+      border-radius: 12px;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.5);
+      text-align: center;
       width: 100%;
-      max-width: 400px; /* Limit max width for better readability */
-      padding: 20px;
-      background-color: rgba(72, 133, 237, 0.9); /* Slightly darker background */
-      border-radius: 15px; /* Rounded corners for softer look */
-      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3); /* Subtle shadow for depth */
+      max-width: 400px;
     }
 
     h3 {
       font-size: 24px;
-      margin-bottom: 10px;
+      margin-bottom: 8px;
     }
 
     h6 {
       font-size: 14px;
-      margin-bottom: 20px;
-      color: #dcdcdc; /* Light grey for secondary text */
+      margin-bottom: 18px;
+      color: #ccc;
     }
 
     .input-container {
       display: flex;
-      flex-direction: column; /* Stack input and button vertically */
+      flex-direction: column;
       gap: 10px;
-      width: 100%;
     }
 
-    .input-container input {
-      padding: 15px;
+    input {
+      padding: 14px;
       border: none;
       border-radius: 8px;
-      background: #ffffff1a; /* Semi-transparent white */
-      color: #ffffff;
+      background: #ffffff1a;
+      color: #fff;
       font-size: 16px;
-      transition: all 0.2s ease-in-out;
+      text-align: center;
     }
 
-    .input-container input:focus {
-      background: #ffffff33; /* Lighter background on focus */
+    input:focus {
+      background: #ffffff33;
       outline: none;
     }
 
-    .input-container button {
-      padding: 15px;
-      background: #25d366; /* Green color for submit button */
-      color: white;
+    button {
+      padding: 14px;
+      background: #25d366;
+      color: #fff;
       font-weight: bold;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      transition: all 0.2s ease-in-out;
+      transition: background 0.2s;
     }
 
-    .input-container button:hover {
-      background: #2980b9; /* Blue color on hover */
+    button:hover {
+      background: #1ebc5e;
     }
 
     #loading-spinner {
       display: none;
       margin-top: 10px;
-      color: white;
+    }
+
+    .fa-spinner {
+      animation: spin 1s linear infinite;
     }
 
     @keyframes spin {
@@ -88,20 +90,19 @@
       100% { transform: rotate(360deg); }
     }
 
-    .fa-spinner {
-      animation: spin 2s linear infinite;
+    #copy {
+      cursor: pointer;
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <h3 class="centered-text">Link with Phone Number</h3>
-    <h6>🔢 Enter your number with country code.</h6>
+    <h3>SEPTORCH BOT PAIRING</h3>
+    <h6>🔢 Enter your number with country code (e.g., 234XXXXXXXXXX)</h6>
     <div class="input-container">
-      <input placeholder="+92346xxxxxx" type="number" id="number" name="">
+      <input id="number" type="text" placeholder="234..." value="+234" />
       <button id="submit">Submit</button>
     </div>
-    <!-- Loading spinner -->
     <div id="loading-spinner">
       <i class="fas fa-spinner fa-spin"></i>
     </div>
@@ -110,40 +111,41 @@
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/1.0.0-alpha.1/axios.min.js"></script>
   <script>
-    let a = document.getElementById("pair");
-    let b = document.getElementById("submit");
-    let c = document.getElementById("number");
+    const pairElement = document.getElementById("pair");
+    const submitButton = document.getElementById("submit");
+    const numberInput = document.getElementById("number");
 
-    async function Copy() {
-      let text = document.getElementById("copy").innerText;
-      let obj = document.getElementById("copy");
-      await navigator.clipboard.writeText(obj.innerText.replace('CODE: ', ''));
-      obj.innerText = "✔️ COPIED";
-      obj.style = "color:red;font-weight:bold";
+    async function copyCode() {
+      const codeText = document.getElementById("copy").innerText;
+      await navigator.clipboard.writeText(codeText.replace('CODE: ', ''));
+      const copyElement = document.getElementById("copy");
+      copyElement.innerText = "✔️ COPIED";
+      copyElement.style.color = "lime";
       setTimeout(() => {
-        obj.innerText = text;
-        obj.style = "color:white;font-weight-bold";
-      }, 500);
+        copyElement.innerHTML = codeText;
+        copyElement.style.color = "red";
+      }, 1000);
     }
 
-    b.addEventListener("click", async (e) => {
+    submitButton.addEventListener("click", async (e) => {
       e.preventDefault();
-      if (!c.value) {
-        a.innerHTML = '<a style="color:red;font-weight:bold">❗ Enter your phone number with country code.</a>';
-      } else if (c.value.replace(/[^0-9]/g, "").length < 11) {
-        a.innerHTML = '<a style="color:red;font-weight:bold">❗ Invalid number format. Please try again.</a>';
+      const phoneNumber = numberInput.value.trim();
+      if (!phoneNumber) {
+        pairElement.innerHTML = '<span style="color:red;font-weight:bold">❗ Please enter your phone number.</span>';
+      } else if (phoneNumber.replace(/[^0-9]/g, "").length < 11) {
+        pairElement.innerHTML = '<span style="color:red;font-weight:bold">❗ Invalid number format.</span>';
       } else {
-        const bc = c.value.replace(/[^0-9]/g, "");
-        c.type = "text";
-        c.value = "+" + bc;
-        c.style = "color:white;font-size:20px";
-        // Show the loading spinner
+        const cleanedNumber = phoneNumber.replace(/[^0-9]/g, "");
+        numberInput.value = `+${cleanedNumber}`;
         document.getElementById("loading-spinner").style.display = "block";
-        a.innerHTML = ''; // Clear previous content
-        let { data } = await axios(`/code?number=${bc}`);
-        let code = data.code || "❗ Service Unavailable";
-        a.innerHTML = `<font id="copy" onclick="Copy()" style="color:red;font-weight:bold" size="5">CODE: <span style="color:white;font-weight:bold">${code}</span></font>`;
-        // Hide the loading spinner when done
+        pairElement.innerHTML = '';
+        try {
+          const { data } = await axios(`/code?number=${cleanedNumber}`);
+          const code = data.code || "❗ Service Unavailable";
+          pairElement.innerHTML = `<span id="copy" onclick="copyCode()" style="color:red;font-weight:bold; font-size: 18px;">CODE: <span style="color:white">${code}</span></span>`;
+        } catch (err) {
+          pairElement.innerHTML = '<span style="color:red;font-weight:bold">❗ Failed to retrieve code.</span>';
+        }
         document.getElementById("loading-spinner").style.display = "none";
       }
     });
