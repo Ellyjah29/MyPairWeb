@@ -1,61 +1,101 @@
 const fs = require('fs');
 const path = require('path');
-const { Dropbox } = require('dropbox');
-const fetch = require('isomorphic-fetch');
+const { google } = require('googleapis');
+const open = require('open');
 
-// Ensure the session directory and file exist
+// === Session Setup ===
 const sessionDir = path.join(__dirname, 'session');
 if (!fs.existsSync(sessionDir)) {
     fs.mkdirSync(sessionDir);
     console.log("Created session directory:", sessionDir);
 }
 
-const sessionFilePath = path.join(sessionDir, 'creds.json');
-if (!fs.existsSync(sessionFilePath)) {
-    fs.writeFileSync(sessionFilePath, '{}');
-    console.log("Created session file:", sessionFilePath);
+const credentialsPath = path.join(sessionDir, 'credentials.json');
+const tokenPath = path.join(sessionDir, 'token.json');
+
+if (!fs.existsSync(credentialsPath)) {
+    throw new Error("Missing Google API credentials file (credentials.json) in session directory.");
 }
 
-// Dropbox Access Token
-const DROPBOX_ACCESS_TOKEN = 'sl.u.AFuiKkkrDg9ETqT9M029c0XQ30J4zgUSMOISk2VVhDUwYiMEHvuk5hELIhgo6lSdR5LF-qkOx6tl46jTt0kraW8IhXrJPzC-RWDpXY1UHMyvQjrzYoALl0gKTfMIe_sGO56qfql9Ltr5uvjzDYKAQPMakpC6aMFUFENJraeacZDbhc446DNVrM06pPcnEjHJX2P7EkMIA3kg9sofR0kGl7Yf3LY9PCW9qwzpkk_llHbXlUuXmm9vXgXc_OAHe4SvFsbRToam_jM0boip_kyT2nJbvgFQMqgE6QfTKlZhCNNGAAlJONXJlSsGh3B0Ce0p6EjGtDF5iWkLMd_HH6LBFSYib-hTDIO8mm6wITzVy02NpWG1rJsIBGXUbTpGAeJwX2aU2wF9gwRu7FXouD7cWKIJxKgvkdCkmUCzyZFSE4AfBQ63q3y74NmQZwiVzz7-7Jl2TU1StRSb0kDpcaYQovAY1XD5G--aAiAVvRBM-nE7g5OBMY9dQRZma2VBGKUITJooXfb-owHZrZqB1tQxkuONdn0ujE5RIWinliTJvpX1yC2BYO-WzfQQj004mzH2Rx23N3d8R6EcLZwx-b-jRuNv6rRVW29m5_a7gFqV0rMPJHDakVMY7DUbmB39RUScfNBl7ZyvW54_qTu8RfibU79w4bvx0B8k3WdJr0742gQcbuVRH15aFdqFBVqyBgYGFuxlmdf8UX3OsorcWllNUXjQN7ZVV3NiD0PjlOwVxFtKJfisslIOgDF4aMnNZanRKtXZfaemBwuxtN75r-qnu5hND0hf2UxVf4mNseDtyGnXgT5jn1FvbODMFBUvWa6MQ_s0o9DsZhYTs91hXY5ikiyOYXWpFXb-3IPx20OJU-KWeWF3YpO7_JqOn-u6dcRfBOc0XKqseFhQdByCezMsiKVd09nPREPRnhn9RfRNujWlf4lfNCq_MaQ1DVOL4eUBL5PgXt1KKnQr-POFBWfYbdRj-X65DKkOuKt6kkDY1y4pRzekc6TPU2Z-sJY5iWd1q9Jxxi2IIWMI-fjo3Ie6ALTW2z1ybEx0ftd8Be8htUGyRvzLpTaO-UCar7siib2qgOJm-NxPIlVYDJIMeZoAk3prNTIdOEur7sNNCIQBna0ZC-nhItJKtxFpV83qTLbrntEBU0OD_HzbHxdJxmmrKQkTplZFwE54FV36PmqhvWMAZqexVkF7XGdcCLkh4InOKbbkkxDOoBSc2STv6VAMKkaTgBEyV2fg6btEpV2QYGJo7BvllfrPHJ-fhT_JmXcDfxHOish_aVQ7A66-lxlwYsg9NeiCP9beLeP7zSHAx95U6wskmK5rwmXpRD5gAYbh0ahAeeYqFvwO89Za2jY1JV2frW89O-Z2_0afkAzufDFN-2sKdxc7iZR_2GBzRxwCwpHQDMDcZdvqN9mr9pRj02So';
+// === Load credentials and authorize ===
+async function authorize() {
+    const credentials = JSON.parse(fs.readFileSync(credentialsPath));
+    const { client_secret, client_id, redirect_uris } = credentials.installed;
+    const oAuth2Client = new google.auth.OAuth2(client_id, client_secret, redirect_uris[0]);
 
-const dbx = new Dropbox({ accessToken: DROPBOX_ACCESS_TOKEN, fetch });
+    if (fs.existsSync(tokenPath)) {
+        oAuth2Client.setCredentials(JSON.parse(fs.readFileSync(tokenPath)));
+        return oAuth2Client;
+    }
 
-// Upload function
-const upload = (data, name) => {
-    return new Promise(async (resolve, reject) => {
-        try {
-            console.log("Preparing to upload to Dropbox...");
-
-            const chunks = [];
-            for await (const chunk of data) {
-                chunks.push(chunk);
-            }
-            const fileBuffer = Buffer.concat(chunks);
-
-            const uploadResponse = await dbx.filesUpload({
-                path: '/' + name,
-                contents: fileBuffer,
-                mode: 'add',
-                autorename: true,
-            });
-
-            console.log("File uploaded. Creating shareable link...");
-
-            const linkResponse = await dbx.sharingCreateSharedLinkWithSettings({
-                path: uploadResponse.result.path_lower,
-            });
-
-            const fullUrl = linkResponse.result.url;
-            const pathOnly = fullUrl.split('/scl/fi/')[1]; // Extract the path-like portion
-
-            console.log("Formatted Dropbox link:", pathOnly);
-            resolve(pathOnly);
-        } catch (err) {
-            console.error("Dropbox upload error:", err);
-            reject(err);
-        }
+    const authUrl = oAuth2Client.generateAuthUrl({
+        access_type: 'offline',
+        scope: ['https://www.googleapis.com/auth/drive.file'],
     });
+
+    console.log('Authorize this app by visiting this URL:', authUrl);
+    await open(authUrl);
+
+    const readline = require('readline');
+    const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+    const code = await new Promise(resolve => rl.question('Enter the code from the page: ', resolve));
+    rl.close();
+
+    const { tokens } = await oAuth2Client.getToken(code);
+    oAuth2Client.setCredentials(tokens);
+    fs.writeFileSync(tokenPath, JSON.stringify(tokens));
+    return oAuth2Client;
+}
+
+// === Upload Function ===
+const upload = async (data, name) => {
+    try {
+        console.log("Preparing to upload to Google Drive...");
+
+        const auth = await authorize();
+        const drive = google.drive({ version: 'v3', auth });
+
+        const chunks = [];
+        for await (const chunk of data) {
+            chunks.push(chunk);
+        }
+        const fileBuffer = Buffer.concat(chunks);
+
+        const filePath = path.join(sessionDir, name);
+        fs.writeFileSync(filePath, fileBuffer); // temporarily save the file
+
+        const fileMetadata = { name: name };
+        const media = {
+            mimeType: 'application/octet-stream',
+            body: fs.createReadStream(filePath),
+        };
+
+        const uploadRes = await drive.files.create({
+            resource: fileMetadata,
+            media,
+            fields: 'id, webViewLink',
+        });
+
+        const fileId = uploadRes.data.id;
+
+        // Make the file readable by anyone with the link
+        await drive.permissions.create({
+            fileId,
+            requestBody: {
+                role: 'reader',
+                type: 'anyone',
+            },
+        });
+
+        const fileUrl = uploadRes.data.webViewLink;
+        console.log("File uploaded successfully. URL:", fileUrl);
+
+        fs.unlinkSync(filePath); // clean up local file
+        return fileUrl;
+    } catch (err) {
+        console.error("Google Drive upload error:", err.message || err);
+        throw err;
+    }
 };
 
 module.exports = { upload };
